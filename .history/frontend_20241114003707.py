@@ -18,8 +18,12 @@ def initialize_session_state():
     if 'next_id' not in st.session_state:
         st.session_state['next_id'] = 0
 
-def add_item(name: str, weight: int, value: int):
-    """Add a new item to the session state."""
+def add_item():
+    """Add a new item to the session state directly."""
+    name = st.session_state.get("new_item_name", "")
+    weight = st.session_state.get("new_item_weight", 1)
+    value = st.session_state.get("new_item_value", 1)
+    
     if name and weight and value:
         st.session_state['items'].append({
             'id': st.session_state['next_id'],
@@ -28,8 +32,23 @@ def add_item(name: str, weight: int, value: int):
             'value': value
         })
         st.session_state['next_id'] += 1
-        return True
-    return False
+
+# Item management section with modified add_item button
+with st.form(key="item_form", clear_on_submit=True):
+    cols = st.columns([2, 1, 1, 1])
+    with cols[0]:
+        st.text_input("Item Name", key="new_item_name")
+    with cols[1]:
+        st.number_input("Weight", min_value=1, key="new_item_weight")
+    with cols[2]:
+        st.number_input("Value", min_value=1, key="new_item_value")
+    with cols[3]:
+        st.write("")  # Spacing
+        st.form_submit_button(
+            label="Add Item",
+            on_click=add_item  # Directly calling add_item without args
+        )
+
 
 def delete_item(item_id: int):
     """Delete an item from the session state."""
@@ -42,32 +61,22 @@ def item_management_section():
     """Create the item management section of the UI."""
     st.subheader("📦 Manage Items")
 
-    # Key for the form
-    form_key = st.session_state.get('form_key', 0)
-
     # Input fields for new items
-    with st.form(key=f"item_form_{form_key}"):
+    with st.form(key="item_form", clear_on_submit=True):
         cols = st.columns([2, 1, 1, 1])
         with cols[0]:
-            name = st.text_input("Item Name")
+            name = st.text_input("Item Name", key="new_item_name")
         with cols[1]:
-            weight = st.number_input("Weight", min_value=1)
+            weight = st.number_input("Weight", min_value=1, key="new_item_weight")
         with cols[2]:
-            value = st.number_input("Value", min_value=1)
+            value = st.number_input("Value", min_value=1, key="new_item_value")
         with cols[3]:
             st.write("")  # Spacing
-            submitted = st.form_submit_button("Add Item")
-            if submitted and name and weight and value:
-                st.session_state['items'].append({
-                    'id': st.session_state['next_id'],
-                    'name': name,
-                    'weight': weight,
-                    'value': value
-                })
-                st.session_state['next_id'] += 1
-                # Increment form key to create a fresh form
-                st.session_state['form_key'] = form_key + 1
-                st.rerun()
+            st.form_submit_button(
+                label="Add Item",
+                on_click=add_item,
+                args=(name, weight, value),
+            )
 
     # Display current items with delete buttons
     if st.session_state['items']:
@@ -87,15 +96,20 @@ def item_management_section():
     else:
         st.info("No items added yet. Add some items to get started!")
 
-def initialize_session_state():
-    """Initialize session state variables if they don't exist."""
-    if 'items' not in st.session_state:
-        st.session_state['items'] = []
-    if 'next_id' not in st.session_state:
-        st.session_state['next_id'] = 0
-    if 'form_key' not in st.session_state:
-        st.session_state['form_key'] = 0
-def create_parameter_inputs() -> Dict[str, Any]:
+def create_parameter_inputs():
+    """Create and store user input parameters with helpful tooltips."""
+    st.sidebar.header("Algorithm Parameters")
+    
+    if 'max_weight' not in st.session_state:
+        st.session_state['max_weight'] = 15
+    
+    st.session_state['max_weight'] = st.sidebar.slider(
+        "Maximum Weight 🏋️",
+        min_value=5,
+        max_value=100,
+        value=st.session_state['max_weight'],
+        help="Maximum weight capacity of the knapsack"
+    )
     """Create and return user input parameters with helpful tooltips."""
     st.sidebar.header("Algorithm Parameters")
     

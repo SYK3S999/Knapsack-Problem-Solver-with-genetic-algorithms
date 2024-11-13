@@ -42,32 +42,22 @@ def item_management_section():
     """Create the item management section of the UI."""
     st.subheader("📦 Manage Items")
 
-    # Key for the form
-    form_key = st.session_state.get('form_key', 0)
-
     # Input fields for new items
-    with st.form(key=f"item_form_{form_key}"):
+    with st.form(key="item_form", clear_on_submit=True):
         cols = st.columns([2, 1, 1, 1])
         with cols[0]:
-            name = st.text_input("Item Name")
+            name = st.text_input("Item Name", key="new_item_name")
         with cols[1]:
-            weight = st.number_input("Weight", min_value=1)
+            weight = st.number_input("Weight", min_value=1, key="new_item_weight")
         with cols[2]:
-            value = st.number_input("Value", min_value=1)
+            value = st.number_input("Value", min_value=1, key="new_item_value")
         with cols[3]:
             st.write("")  # Spacing
-            submitted = st.form_submit_button("Add Item")
-            if submitted and name and weight and value:
-                st.session_state['items'].append({
-                    'id': st.session_state['next_id'],
-                    'name': name,
-                    'weight': weight,
-                    'value': value
-                })
-                st.session_state['next_id'] += 1
-                # Increment form key to create a fresh form
-                st.session_state['form_key'] = form_key + 1
-                st.rerun()
+            st.form_submit_button(
+                label="Add Item",
+                on_click=add_item,
+                args=(name, weight, value),
+            )
 
     # Display current items with delete buttons
     if st.session_state['items']:
@@ -87,14 +77,6 @@ def item_management_section():
     else:
         st.info("No items added yet. Add some items to get started!")
 
-def initialize_session_state():
-    """Initialize session state variables if they don't exist."""
-    if 'items' not in st.session_state:
-        st.session_state['items'] = []
-    if 'next_id' not in st.session_state:
-        st.session_state['next_id'] = 0
-    if 'form_key' not in st.session_state:
-        st.session_state['form_key'] = 0
 def create_parameter_inputs() -> Dict[str, Any]:
     """Create and return user input parameters with helpful tooltips."""
     st.sidebar.header("Algorithm Parameters")
